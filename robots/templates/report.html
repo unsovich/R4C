@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчет о производстве роботов</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">Отчет о производстве роботов</h1>
+    <form method="post" class="mb-4 text-center">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Показать отчет</button>
+    </form>
+
+    {% if robots %}
+        <h2 class="mb-3 text-center" >Роботы произведенные за заданный период</h2>
+        <div class="table-responsive">
+            <table class="table table-bordered text-center">
+                <thead class="thead-dark">
+                    <tr>
+                        <th style="width: 25%;">Модель</th>
+                        <th style="width: 25%;">Версия</th>
+                        <th style="width: 25%;">Количество</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for robot in robots %}
+                        <tr>
+                            <td>{{ robot.model }}</td>
+                            <td>{{ robot.version }}</td>
+                            <td>{{ robot.count }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="mb-3 text-center" >
+            <a href="{% url 'download_report' %}?start_date={{ form.start_date.value }}&end_date={{ form.end_date.value }}" class="btn btn-success mt-3">Скачать отчет в XLSX</a>
+        </div>
+        {% endif %}
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
