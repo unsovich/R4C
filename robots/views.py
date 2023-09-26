@@ -3,11 +3,12 @@ import xlsxwriter
 from django.db.models import Count
 from django.http import JsonResponse, HttpResponse
 from django.core.exceptions import ValidationError
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from .forms import ProductionReportForm
 from .models import Robot
 import json
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 
 
 @csrf_exempt
@@ -27,8 +28,18 @@ def create_robot(request):
         except ValidationError as e:
             return JsonResponse({'error': str(e)}, status=400)
 
-        robot = Robot(model=model, version=version, created=created)
-        robot.save()
+        # попытка найти робота с такой же моделью и версией
+        existing_robot = Robot.objects.filter(model=model, version=version).first()
+        if existing_robot:
+            if existing_robot.quantity == 0:
+                existing_robot.is_active = False
+                existing_robot.save()
+                robot = Robot(model=model, version=version, created=created, quantity=1)
+                robot.save()
+        else:
+            # если робот не существует, создаем нового
+            robot = Robot(model=model, version=version, created=created, quantity=1)
+            robot.save()
 
         return JsonResponse({'message': 'Робот успешно создан'}, status=201)
     else:
@@ -86,6 +97,7 @@ def create_excel_report(robots, start_date, end_date):
     return excel_data
 
 
+@login_required(login_url='/admin/login')
 def generate_report(request):
     if request.method == 'POST':
         form = ProductionReportForm(request.POST)
@@ -94,8 +106,7 @@ def generate_report(request):
             end_date = form.cleaned_data['end_date']
 
             robots = Robot.objects.filter(
-                created__range=(start_date, end_date)
-            ).values('model', 'version').annotate(count=Count('id'))
+                created__range=(start_date, end_date)).values('model', 'version').annotate(count=Count('quantity'))
 
             context = {'form': form, 'robots': robots}
             return render(request, 'report.html', context)
@@ -122,3 +133,13 @@ def download_report(request):
     response.write(excel_data.getvalue())
 
     return response
+
+
+def robot_list(request):
+    robots = Robot.objects.all()
+    return render(request, 'list.html', {'robots': robots})
+
+
+def robot_detail(request, robot_id, model, version):
+    robot = get_object_or_404(Robot, id=robot_id, model=model, version=version)
+    return render(request, 'detail.html', {'robot': robot})
