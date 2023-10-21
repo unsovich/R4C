@@ -1,7 +1,5 @@
 from django import forms
 
-from robots.models import Robot
-
 
 class ProductionReportForm(forms.Form):
     start_date = forms.DateField(

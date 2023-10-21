@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Производимые роботы{% endblock %}
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">Список производимых роботов</h1>
+        <div id="main" class="product-list">
+            <div class="table-responsive">
+                <table class="table table-bordered text-center">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th style="width: 25%;">Модель</th>
+                            <th style="width: 25%;">Версия</th>
+                            <th style="width: 25%;">Подробнее</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for robot in robots %}
+                            {% if robot.is_active %}
+                                <tr>
+                                    <td>{{ robot.model }}</td>
+                                    <td>{{ robot.version }}</td>
+                                    <td>
+                                        <div class="robot-list">
+                                            <form action="{% url 'robots:robot_detail' robot.id robot.model robot.version %}" method="get">
+                                                <button type="submit" class="btn btn-primary">Подробнее</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
